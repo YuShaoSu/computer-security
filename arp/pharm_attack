@@ -8,7 +8,7 @@ from uuid import getnode
 import subprocess
 from scapy.layers.http import HTTPRequest
 from netfilterqueue import NetfilterQueue
-
+import netifaces
 TARGET_WEBSITE = '140.113.207.246'
 HOME_PAGE = b'www.nctu.edu.tw.'
 
@@ -33,15 +33,10 @@ def attacker():
 	return str(IP), str(mac)
 
 def ap(vip,vmac):
-	c = 0
-	for i in vip:
-		if(i.endswith(".1")):
-			ip = vip[c]; mac = vmac[c]
-			del vip[c]; del vmac[c]
-			return ip, mac
-		c += 1
-	return "",""
-
+	ip = netifaces.gateways()[netifaces.AF_INET][0][0]
+	mac = vmac[vip.index(ip)]
+	print(ip,mac)
+	return ip, mac
 
 def scan_net(ip):
 
