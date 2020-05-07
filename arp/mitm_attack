@@ -64,14 +64,6 @@ def scan_net(ip):
 		vip.append(line[1])
 		vmac.append(line[3])
 		lines = stream.readline()
-	
-	sys.stdout.write("{:<20}{:<20}\n".format("IP", "MAC Address"))
-	for i in range(len(vip)):
-		sys.stdout.write("{:<20}{:<20}\n".format(vip[i], vmac[i]))
-
-
-	print("\nscan network completed.")
-	print("="*23)
 
 	return vip,vmac
 
@@ -83,7 +75,9 @@ def arp():
 
 	vip, vmac = scan_net(attacker_ip)
 
-	ap_ip, ap_mac = ap(vip,vmac)		
+	ap_ip, ap_mac = ap(vip, vmac)
+
+	print_addr(vip, vmac, attacker_ip, ap_ip)	
 
 
 	for v in range(len(vip)):
@@ -95,6 +89,19 @@ def arp():
 	print("\narp spoffing completed.")
 	print("="*23)
 	
+
+def print_addr(vip, vmac, attacker_ip, ap_ip):
+    	
+	sys.stdout.write("{:<20}{:<20}\n".format("IP", "MAC Address"))
+	for i in range(len(vip)):
+		if vip[i] == attacker_ip or vip[i] == ap_ip:
+			continue
+		sys.stdout.write("{:<20}{:<20}\n".format(vip[i], vmac[i]))
+
+
+	print("\nscan network completed.")
+	print("="*23)
+
 
 def http_content(packet):
 	method = packet[HTTPRequest].Method.decode()

