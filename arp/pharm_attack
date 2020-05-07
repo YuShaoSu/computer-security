@@ -108,7 +108,6 @@ def pharm():
 def handle_queue(packet):
 	print(packet)
 	pkt = IP(packet.get_payload())
-	print(pkt[DNS][DNSQR].qname)
 	if pkt[DNS][DNSQR].qname == HOME_PAGE:
 		print('phishing')
 		print(pkt[DNS][DNSRR].rrname, pkt[DNS][DNSRR].rdata)
