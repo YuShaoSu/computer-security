@@ -24,7 +24,7 @@ print('original encrypted text', cipherText)
 print('decrypted text with key ', key, ': ', decipherText)
 
 # replace the specific string
-decipherText = decipherText.replace('1234567', '0516016')
+decipherText = decipherText.replace('1234567', '0516016-0516225')
 print('decrypted text with replacement', decipherText)
 
 # encrypt with the same key again

